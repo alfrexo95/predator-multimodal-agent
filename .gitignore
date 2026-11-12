@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+deliveries/
+inbox/
+ucash_state.json

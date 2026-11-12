@@ -1,0 +1,30 @@
+name: Multimodal Agent
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *' # Respaldo cada 2 horas
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install deps
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+      - name: Run agent
+        env:
+          UCASH_API_KEY: ${{ secrets.UCASH_API_KEY }}
+        run: python3 agent.py
+      - name: Commit deliveries
+        if: always()
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add deliveries/ ucash_state.json || true
+          git diff --cached --quiet || git commit -m "auto: delivery"
+          git push

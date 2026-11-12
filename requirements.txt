@@ -1,0 +1,9 @@
+torch --index-url https://download.pytorch.org/whl/cpu
+tensorflow-cpu
+transformers>=4.37.0
+accelerate
+scikit-learn
+pillow
+pytesseract
+opencv-python-headless
+agents-u-cash
