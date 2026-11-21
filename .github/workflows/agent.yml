@@ -20,6 +20,26 @@ jobs:
         env:
           UCASH_API_KEY: ${{ secrets.UCASH_API_KEY }}
         run: python3 agent.py
+
+      - name: Register Multimodal Agent in Predator Hub (optional)
+        if: ${{ secrets.INFRA_HUB_TOKEN != '' }}
+        continue-on-error: true
+        env:
+          HUB_TOKEN: ${{ secrets.INFRA_HUB_TOKEN }}
+          HUB_URL: https://x402-api-wigc.onrender.com
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            hour="$(date -u +%H)"
+            if (( 10#$hour % 6 != 0 )); then echo "Hub heartbeat skipped this cycle"; exit 0; fi
+          fi
+          curl --silent --show-error --fail --max-time 15 \
+            -H "Authorization: Bearer $HUB_TOKEN" -H "Content-Type: application/json" \
+            -d '{"agent_id":"predator-multimodal-agent","platform":"github-actions","capabilities":["multimodal.analysis","media.processing","ucash.agent"]}' \
+            "$HUB_URL/infra/agents/register"
+          curl --silent --show-error --fail --max-time 15 \
+            -H "Authorization: Bearer $HUB_TOKEN" -H "Content-Type: application/json" \
+            -d '{}' "$HUB_URL/infra/agents/predator-multimodal-agent/heartbeat"
       - name: Commit deliveries
         if: always()
         run: |
